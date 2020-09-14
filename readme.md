@@ -1,0 +1,3 @@
+# Spring Integration With Kubernetes:
+### Introduction:
+This project uses Spring Integration - File Adapter - to poll a directorty periodically...
