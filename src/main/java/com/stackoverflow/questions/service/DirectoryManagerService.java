@@ -21,7 +21,7 @@ public class DirectoryManagerService {
 
   public void moveToErrorDir(File fileToMove)  {
     try {
-      moveFile(fileToMove, new File(errorDir.concat(fileToMove.getName())));
+      moveFile(fileToMove, new File(errorDir.concat("/").concat(fileToMove.getName())));
     } catch (IOException e) {
       log.error("====== unable to move file {} to Error Dir {} ======", fileToMove.getAbsoluteFile(), errorDir);
     }
@@ -29,7 +29,7 @@ public class DirectoryManagerService {
 
   public void moveToProcessedDir(File fileToMove) {
     try {
-      moveFile(fileToMove, new File(processedDir.concat(fileToMove.getName())));
+      moveFile(fileToMove, new File(processedDir.concat("/").concat(fileToMove.getName())));
     } catch (IOException e) {
       log.error("====== unable to move file {} to Error Dir ======", fileToMove.getName());
     }

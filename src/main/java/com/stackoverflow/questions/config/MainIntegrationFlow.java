@@ -97,7 +97,7 @@ public class MainIntegrationFlow {
 
   @Bean
   public MessageChannel fileReaderChannel() {
-    return MessageChannels.direct("fileReaderChannel").get();
+    return MessageChannels.queue("fileReaderChannel").get();
   }
 
   @Bean("mainDirectoryScanner")
