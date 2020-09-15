@@ -1,6 +1,8 @@
 package com.stackoverflow.questions;
 
+import static org.apache.commons.io.FileUtils.forceDelete;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 
 import com.stackoverflow.questions.service.DirectoryManagerService;
 import java.io.File;
@@ -15,9 +17,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest
+@DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 public class MainFlowIntegrationTests {
 
 
@@ -43,14 +47,12 @@ public class MainFlowIntegrationTests {
   }
 
   @AfterEach
-  public void tearDown() {
-    queueDir.delete();
-    processed.delete();
-    error.delete();
+  public void tearDown() throws IOException {
+    deleteRequiredDirectories();
   }
 
   @Test
-  public void readingValidFileAndMoveItToProcessedDir() throws IOException, InterruptedException {
+  public void readingFileAndMoveItToProcessedDir() throws IOException, InterruptedException {
     // When: the fileReaderChannel receives a valid XML file
     fileReaderChannel
         .send(MessageBuilder.withPayload(new File(queueDir, VALID_XML_MOCK_FILE)).build());
@@ -70,16 +72,17 @@ public class MainFlowIntegrationTests {
   }
 
   private void injectProperties() {
-    ReflectionTestUtils.setField(directoryManagerService, "errorDir", error.getAbsolutePath().concat("/"));
+    ReflectionTestUtils
+        .setField(directoryManagerService, "errorDir", error.getAbsolutePath().concat("/"));
     ReflectionTestUtils
         .setField(directoryManagerService, "processedDir", processed.getAbsolutePath().concat("/"));
   }
 
   private void moveFilesToQueueDir() throws IOException {
-    File intfiles = new ClassPathResource(MOCK_FILE_DIR).getFile();
+    File intFiles = new ClassPathResource(MOCK_FILE_DIR).getFile();
 
-    for (String filename : intfiles.list()) {
-      FileUtils.copyFile(new File(intfiles, filename), new File(queueDir, filename));
+    for (String filename : intFiles.list()) {
+      FileUtils.copyFile(new File(intFiles, filename), new File(queueDir, filename));
     }
   }
 
@@ -87,6 +90,12 @@ public class MainFlowIntegrationTests {
     queueDir = Files.createTempDirectory("queueDir").toFile();
     processed = Files.createTempDirectory("processedDir").toFile();
     error = Files.createTempDirectory("errorDir").toFile();
+  }
+
+  private void deleteRequiredDirectories() throws IOException {
+    forceDelete(queueDir);
+    forceDelete(processed);
+    forceDelete(error);
   }
 
 }
