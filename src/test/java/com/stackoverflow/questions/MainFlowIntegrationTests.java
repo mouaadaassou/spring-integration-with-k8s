@@ -1,14 +1,11 @@
 package com.stackoverflow.questions;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import com.stackoverflow.questions.service.DirectoryManagerService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +19,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest
 public class MainFlowIntegrationTests {
+
+
+  private static final String MOCK_FILE_DIR = "intFiles/";
+  private static final String VALID_XML_MOCK_FILE = "valid01-student-01.xml";
+  private static final String INVALID_XML_MOCK_FILE = "invalid02-student-02.xml";
 
   @Autowired
   private MessageChannel fileReaderChannel;
@@ -51,7 +53,7 @@ public class MainFlowIntegrationTests {
   public void readingValidFileAndMoveItToProcessedDir() throws IOException, InterruptedException {
     // When: the fileReaderChannel receives a valid XML file
     fileReaderChannel
-        .send(MessageBuilder.withPayload(new File(queueDir, "valid01-student-01.xml")).build());
+        .send(MessageBuilder.withPayload(new File(queueDir, VALID_XML_MOCK_FILE)).build());
 
     // Then: the valid XML file should be sent to the processedDir
     await().until(() -> processed.list().length == 1);
@@ -61,20 +63,20 @@ public class MainFlowIntegrationTests {
   public void readingInvalidFileAndMoveItToErrorDir() throws IOException, InterruptedException {
     // When: the fileReaderChannel receives a invalid XML file
     fileReaderChannel
-        .send(MessageBuilder.withPayload(new File(queueDir, "invalid02-student-02.xml")).build());
+        .send(MessageBuilder.withPayload(new File(queueDir, INVALID_XML_MOCK_FILE)).build());
 
     // Then: the invalid XML file should be sent to the errorDir
     await().until(() -> error.list().length == 1);
   }
 
   private void injectProperties() {
-    ReflectionTestUtils.setField(directoryManagerService, "errorDir", error.getAbsolutePath());
+    ReflectionTestUtils.setField(directoryManagerService, "errorDir", error.getAbsolutePath().concat("/"));
     ReflectionTestUtils
-        .setField(directoryManagerService, "processedDir", processed.getAbsolutePath());
+        .setField(directoryManagerService, "processedDir", processed.getAbsolutePath().concat("/"));
   }
 
   private void moveFilesToQueueDir() throws IOException {
-    File intfiles = new ClassPathResource("intFiles/").getFile();
+    File intfiles = new ClassPathResource(MOCK_FILE_DIR).getFile();
 
     for (String filename : intfiles.list()) {
       FileUtils.copyFile(new File(intfiles, filename), new File(queueDir, filename));
