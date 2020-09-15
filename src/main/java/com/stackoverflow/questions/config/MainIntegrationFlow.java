@@ -53,8 +53,10 @@ public class MainIntegrationFlow {
 
   @Bean("mainStudentIntegrationFlow")
   public IntegrationFlow mainStudentIntegrationFlow(
-      @Qualifier("mainFileReadingSourceMessage") MessageSource<File> mainFileReadingSourceMessage) {
-    return IntegrationFlows.from(mainFileReadingSourceMessage, e -> e.id("fileReadingEndpoint"))
+      @Qualifier("mainFileReadingSourceMessage") MessageSource<File> mainFileReadingSourceMessage,
+      @Qualifier("fileReaderChannel") MessageChannel fileReaderChannel) {
+    return IntegrationFlows.from(mainFileReadingSourceMessage)
+        .channel(fileReaderChannel)
         .handle(fileReaderHandler)
         .transform(fileToStudentTransformer)
         .handle(studentWriterHandler)
@@ -91,6 +93,11 @@ public class MainIntegrationFlow {
     return Pollers.fixedRate(defaultPollingRate, TimeUnit.SECONDS)
         .maxMessagesPerPoll(0)
         .get();
+  }
+
+  @Bean
+  public MessageChannel fileReaderChannel() {
+    return MessageChannels.direct("fileReaderChannel").get();
   }
 
   @Bean("mainDirectoryScanner")
