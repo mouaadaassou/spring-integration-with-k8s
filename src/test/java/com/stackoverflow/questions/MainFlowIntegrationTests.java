@@ -15,13 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest
-@DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 public class MainFlowIntegrationTests {
 
 
@@ -31,6 +31,9 @@ public class MainFlowIntegrationTests {
 
   @Autowired
   private MessageChannel fileReaderChannel;
+
+  @Autowired
+  private StandardIntegrationFlow mainStudentIntegrationFlow;
 
   @Autowired
   private DirectoryManagerService directoryManagerService;
@@ -44,10 +47,12 @@ public class MainFlowIntegrationTests {
     createRequiredDirectories();
     moveFilesToQueueDir();
     injectProperties();
+    mainStudentIntegrationFlow.start();
   }
 
   @AfterEach
   public void tearDown() throws IOException {
+    mainStudentIntegrationFlow.stop();
     deleteRequiredDirectories();
   }
 

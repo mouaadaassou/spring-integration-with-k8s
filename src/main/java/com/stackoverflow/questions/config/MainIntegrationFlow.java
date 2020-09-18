@@ -95,7 +95,7 @@ public class MainIntegrationFlow {
         .get();
   }
 
-  @Bean
+  @Bean(name = "fileReaderChannel")
   public MessageChannel fileReaderChannel() {
     return MessageChannels.queue("fileReaderChannel").get();
   }
